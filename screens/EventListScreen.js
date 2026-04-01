@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { fetchEvents } from '../services/api';
 import { addFavorite, getFavorites } from "../services/database";
 
-export default function EventListScreen() {
+export default function EventListScreen({ navigation }) {
   const [events, setEvents] = useState([]);
   const [favorites, setFavorites] = useState([]);
 
@@ -30,12 +30,16 @@ export default function EventListScreen() {
 
   return (
     <View style={styles.container}>
+      <Button
+        title="Go to Favorites"
+        onPress={() => navigation.navigate('Favorites')}
+      />
       <FlatList
         data={events}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <View style={styles.row}>
-            <Text style={styles.item}>{item.name.fi || "No title"}</Text>
+            <Text style={styles.item}>{item.name.fi || 'No title'}</Text>
             <Button title="Favorite" onPress={() => handleAddFavorite(item)} />
           </View>
         )}
