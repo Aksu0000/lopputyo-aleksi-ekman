@@ -2,7 +2,7 @@ import { View, FlatList, StyleSheet } from "react-native";
 import { useEffect, useState } from 'react';
 import { fetchEvents } from '../services/api';
 import { addFavorite, getFavorites } from "../services/database";
-import { Card, Button, Text, Appbar } from "react-native-paper";
+import { Card, Button, Text, Appbar, Paragraph } from "react-native-paper";
 
 export default function EventListScreen({ navigation }) {
   const [events, setEvents] = useState([]);
@@ -29,6 +29,22 @@ export default function EventListScreen({ navigation }) {
     loadFavorites();
   };
 
+  const formatDate = (start, end) => {
+    if (!start) return "No date";
+    const startDate = new Date(start);
+    let dateStr = startDate.toLocaleString();
+    if (end) {
+      const endDate = new Date(end);
+      dateStr += " - " + endDate.toLocaleTimeString();
+    }
+    return dateStr;
+  };
+
+  const stripHtml = (html) => {
+    if (!html) return "";
+    return html.replace(/<[^>]*>?/gm, "");
+  };
+
   return (
     <View style={{ flex: 1 }}>
       <Appbar.Header>
@@ -46,6 +62,19 @@ export default function EventListScreen({ navigation }) {
         renderItem={({ item }) => (
           <Card style={styles.card}>
             <Card.Title title={item.name.fi || "No title"} />
+            <Card.Content>
+              {item.description?.fi ? (
+                <Paragraph numberOfLines={2}>{stripHtml(item.description.fi)}</Paragraph>
+              ) : (
+                <Paragraph>No description</Paragraph>
+              )}
+              <Text style={styles.text}>
+                🕒 {formatDate(item.start_time, item.end_time)}
+              </Text>
+              <Text style={styles.text}>
+                📍 {item.location?.name?.fi || "No location"}
+              </Text>
+            </Card.Content>
             <Card.Actions>
               <Button mode="contained" onPress={() => handleAddFavorite(item)}>
                 Favorite
@@ -60,4 +89,5 @@ export default function EventListScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   card: { marginBottom: 10 },
+  text: { marginTop: 4, fontSize: 14, color: "#555" },
 });

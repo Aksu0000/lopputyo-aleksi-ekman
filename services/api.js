@@ -1,12 +1,24 @@
 export const fetchEvents = async () => {
+  const allEvents = [];
+  let page = 1;
+  let totalPages = 1;
+
   try {
-    const response = await fetch(
-      'https://api.hel.fi/linkedevents/v1/event/?format=json&city=helsinki'
-    );
-    const data = await response.json();
-    return data.data;
+    do {
+      const response = await fetch(
+        `https://api.hel.fi/linkedevents/v1/event/?format=json&page=${page}`
+      );
+      const data = await response.json();
+
+      allEvents.push(...data.data);
+
+      totalPages = data.meta.total_pages;
+      page += 1;
+    } while (page <= totalPages);
+
+    return allEvents;
   } catch (error) {
-    console.error(error);
+    console.error('Error fetching events:', error);
     return [];
   }
 };
