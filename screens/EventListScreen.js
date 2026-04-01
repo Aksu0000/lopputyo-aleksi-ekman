@@ -1,8 +1,11 @@
 import { View, Text, StyleSheet } from 'react-native';
-import EventListScreen from './screens/EventListScreen';
 
-export default function App() {
-  return <EventListScreen />;
+export default function EventListScreen() {
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Events</Text>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -12,7 +15,7 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold'
   }
 });
