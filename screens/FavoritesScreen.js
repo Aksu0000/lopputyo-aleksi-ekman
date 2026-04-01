@@ -1,8 +1,9 @@
-import { View, Text, FlatList, StyleSheet, Button } from 'react-native';
+import { View, FlatList, StyleSheet } from "react-native";
 import { useEffect, useState } from 'react';
 import { getFavorites, removeFavorite } from '../services/database';
+import { Card, Button, Text, Appbar } from "react-native-paper";
 
-export default function FavoritesScreen() {
+export default function FavoritesScreen({ navigation }) {
   const [favorites, setFavorites] = useState([]);
 
   useEffect(() => {
@@ -20,15 +21,25 @@ export default function FavoritesScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={{ flex: 1 }}>
+      <Appbar.Header>
+        <Appbar.BackAction onPress={() => navigation.goBack()} />
+        <Appbar.Content title="Favorites" />
+      </Appbar.Header>
+
       <FlatList
+        contentContainerStyle={{ padding: 10 }}
         data={favorites}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.row}>
-            <Text style={styles.item}>{item.name}</Text>
-            <Button title="Remove" onPress={() => handleRemove(item.id)} />
-          </View>
+          <Card style={styles.card}>
+            <Card.Title title={item.name} />
+            <Card.Actions>
+              <Button mode="outlined" onPress={() => handleRemove(item.id)}>
+                Remove
+              </Button>
+            </Card.Actions>
+          </Card>
         )}
       />
     </View>
@@ -36,7 +47,5 @@ export default function FavoritesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
-  row: { marginBottom: 15 },
-  item: { fontSize: 16 },
+  card: { marginBottom: 10 },
 });

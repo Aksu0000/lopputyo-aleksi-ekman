@@ -1,7 +1,8 @@
-import { View, Text, FlatList, StyleSheet, Button } from "react-native";
+import { View, FlatList, StyleSheet } from "react-native";
 import { useEffect, useState } from 'react';
 import { fetchEvents } from '../services/api';
 import { addFavorite, getFavorites } from "../services/database";
+import { Card, Button, Text, Appbar } from "react-native-paper";
 
 export default function EventListScreen({ navigation }) {
   const [events, setEvents] = useState([]);
@@ -29,19 +30,28 @@ export default function EventListScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <Button
-        title="Go to Favorites"
-        onPress={() => navigation.navigate('Favorites')}
-      />
+    <View style={{ flex: 1 }}>
+      <Appbar.Header>
+        <Appbar.Content title="Events" />
+        <Appbar.Action
+          icon="star"
+          onPress={() => navigation.navigate("Favorites")}
+        />
+      </Appbar.Header>
+
       <FlatList
+        contentContainerStyle={{ padding: 10 }}
         data={events}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <View style={styles.row}>
-            <Text style={styles.item}>{item.name.fi || 'No title'}</Text>
-            <Button title="Favorite" onPress={() => handleAddFavorite(item)} />
-          </View>
+          <Card style={styles.card}>
+            <Card.Title title={item.name.fi || "No title"} />
+            <Card.Actions>
+              <Button mode="contained" onPress={() => handleAddFavorite(item)}>
+                Favorite
+              </Button>
+            </Card.Actions>
+          </Card>
         )}
       />
     </View>
@@ -49,7 +59,5 @@ export default function EventListScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
-  row: { marginBottom: 15 },
-  item: { fontSize: 16 },
+  card: { marginBottom: 10 },
 });
