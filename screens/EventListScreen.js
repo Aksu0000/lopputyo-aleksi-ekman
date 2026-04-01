@@ -1,21 +1,35 @@
 import { View, FlatList, StyleSheet } from "react-native";
-import { useEffect, useState } from 'react';
-import { fetchEvents } from '../services/api';
+import { useEffect, useState } from "react";
+import { fetchEventsPage } from "../services/api"; // uusi funktio, hakee yhden sivun
 import { addFavorite, getFavorites } from "../services/database";
 import { Card, Button, Text, Appbar, Paragraph } from "react-native-paper";
 
 export default function EventListScreen({ navigation }) {
   const [events, setEvents] = useState([]);
   const [favorites, setFavorites] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    loadEvents();
     loadFavorites();
+    loadNextPage();
   }, []);
 
-  const loadEvents = async () => {
-    const data = await fetchEvents();
-    setEvents(data);
+  const loadNextPage = async () => {
+    if (loading || page > totalPages) return;
+
+    setLoading(true);
+    try {
+      const { data, meta } = await fetchEventsPage(page);
+      setEvents((prev) => [...prev, ...data]);
+      setTotalPages(meta.total_pages);
+      setPage((prev) => prev + 1);
+    } catch (error) {
+      console.error("Error loading events:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const loadFavorites = async () => {
@@ -64,7 +78,9 @@ export default function EventListScreen({ navigation }) {
             <Card.Title title={item.name.fi || "No title"} />
             <Card.Content>
               {item.description?.fi ? (
-                <Paragraph numberOfLines={2}>{stripHtml(item.description.fi)}</Paragraph>
+                <Paragraph numberOfLines={2}>
+                  {stripHtml(item.description.fi)}
+                </Paragraph>
               ) : (
                 <Paragraph>No description</Paragraph>
               )}
@@ -72,7 +88,7 @@ export default function EventListScreen({ navigation }) {
                 🕒 {formatDate(item.start_time, item.end_time)}
               </Text>
               <Text style={styles.text}>
-                📍 {item.location?.name?.fi || "No location"}
+                👤 {item.provider?.fi || "No provider"}
               </Text>
             </Card.Content>
             <Card.Actions>
@@ -82,6 +98,8 @@ export default function EventListScreen({ navigation }) {
             </Card.Actions>
           </Card>
         )}
+        onEndReached={loadNextPage}
+        onEndReachedThreshold={0.5}
       />
     </View>
   );

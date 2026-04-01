@@ -22,3 +22,16 @@ export const fetchEvents = async () => {
     return [];
   }
 };
+
+export const fetchEventsPage = async (page = 1) => {
+  try {
+    const response = await fetch(
+      `https://api.hel.fi/linkedevents/v1/event/?format=json&page=${page}`
+    );
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching events page:', error);
+    return { data: [], meta: { total_pages: 0 } };
+  }
+};
