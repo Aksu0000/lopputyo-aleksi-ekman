@@ -3,7 +3,12 @@ import { Card, Paragraph, Text, Button } from "react-native-paper";
 import { StyleSheet } from "react-native";
 import { fetchLocationName } from "../services/locationCache";
 
-export default function EventCard({ item, onFavorite, onPress, favoriteLabel = "Suosikki" }) {
+export default function EventCard({
+  item,
+  onFavorite,
+  onPress,
+  favoriteLabel = "Suosikki",
+}) {
   const [locationName, setLocationName] = useState("Ladataan...");
   const [isFav, setIsFav] = useState(false);
 
@@ -27,15 +32,25 @@ export default function EventCard({ item, onFavorite, onPress, favoriteLabel = "
     setIsFav((prev) => !prev);
   };
 
-  const stripHtml = (html) => html ? html.replace(/<[^>]*>?/gm, "") : "";
+  const stripHtml = (html) => {
+    if (!html) return "";
+    return html.replace(/<[^>]*>?/gm, "");
+  };
+  
   const formatDate = (start, end) => {
     if (!start) return "Ei päivämäärää";
     const s = new Date(start);
     const date = s.toLocaleDateString("fi-FI");
-    const startTime = s.toLocaleTimeString("fi-FI", { hour: "2-digit", minute: "2-digit" });
+    const startTime = s.toLocaleTimeString("fi-FI", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
     if (!end) return `${date} klo ${startTime}`;
     const e = new Date(end);
-    const endTime = e.toLocaleTimeString("fi-FI", { hour: "2-digit", minute: "2-digit" });
+    const endTime = e.toLocaleTimeString("fi-FI", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
     return `${date} klo ${startTime} – ${endTime}`;
   };
 
@@ -43,8 +58,12 @@ export default function EventCard({ item, onFavorite, onPress, favoriteLabel = "
     <Card style={styles.card} onPress={() => onPress && onPress(item)}>
       <Card.Title title={item.name?.fi || "No title"} />
       <Card.Content>
-        <Paragraph numberOfLines={2}>{stripHtml(item.description?.fi) || "Ei kuvausta"}</Paragraph>
-        <Text style={styles.text}>🕒 {formatDate(item.start_time, item.end_time)}</Text>
+        <Paragraph numberOfLines={2}>
+          {stripHtml(item.description?.fi) || "Ei kuvausta"}
+        </Paragraph>
+        <Text style={styles.text}>
+          🕒 {formatDate(item.start_time, item.end_time)}
+        </Text>
         <Text style={styles.text}>📍 {locationName}</Text>
       </Card.Content>
       <Card.Actions>

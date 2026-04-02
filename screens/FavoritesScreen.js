@@ -37,7 +37,10 @@ export default function FavoritesScreen({ navigation }) {
     [navigation],
   );
 
-  const stripHtml = (html) => (html ? html.replace(/<[^>]*>?/gm, "") : "");
+  const stripHtml = (html) => {
+    if (!html) return "";
+    return html.replace(/<[^>]*>?/gm, "");
+  };
 
   const filteredFavorites = searchQuery.trim()
     ? favorites.filter((event) => {

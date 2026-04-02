@@ -30,7 +30,10 @@ export default function EventListScreen({ navigation }) {
     [navigation],
   );
 
-  const stripHtml = (html) => (html ? html.replace(/<[^>]*>?/gm, "") : "");
+  const stripHtml = (html) => {
+    if (!html) return "";
+    return html.replace(/<[^>]*>?/gm, "");
+  };
 
   const filteredEvents = searchQuery.trim()
     ? events.filter((event) => {
@@ -44,6 +47,7 @@ export default function EventListScreen({ navigation }) {
   const loadAllEvents = async () => {
     setLoading(true);
     setEvents([]);
+
     const seenNames = new Set();
     const now = new Date();
     let page = 1;
@@ -56,6 +60,7 @@ export default function EventListScreen({ navigation }) {
         const upcoming = data.filter((event) => {
           if (!event.start_time) return false;
           const start = new Date(event.start_time);
+
           return start >= now;
         });
 
