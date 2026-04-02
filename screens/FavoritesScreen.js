@@ -37,7 +37,7 @@ export default function FavoritesScreen({ navigation }) {
 
   const handleOpenDetail = useCallback(
     (item) => navigation.navigate("EventDetail", { event: item }),
-    [navigation]
+    [navigation],
   );
 
   const stripHtml = (html) => html.replace(/<[^>]*>?/gm, "");
@@ -51,7 +51,7 @@ export default function FavoritesScreen({ navigation }) {
       })
     : favorites;
 
-    const renderItem = ({ item }) => {
+  const renderItem = ({ item }) => {
     const event = dbRowToEvent(item);
     return (
       <EventCard
@@ -77,10 +77,10 @@ export default function FavoritesScreen({ navigation }) {
       />
 
       {filteredFavorites.length === 0 && (
-              <View style={styles.emptyContainer}>
-                <Text>Ei tapahtumia hakusanalla "{searchQuery}"</Text>
-              </View>
-            )}
+        <View style={styles.emptyContainer}>
+          <Text>Ei tapahtumia hakusanalla "{searchQuery}"</Text>
+        </View>
+      )}
 
       {favorites.length === 0 ? (
         <View style={styles.emptyContainer}>
@@ -99,5 +99,11 @@ export default function FavoritesScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  emptyContainer: { flex: 1, alignItems: "center", justifyContent: "center" },
+  searchbar: { margin: 8 },
+  emptyContainer: {
+    flex: 1,
+    alignItems: "center",
+    padding: 32,
+    justifyContent: "center",
+  },
 });

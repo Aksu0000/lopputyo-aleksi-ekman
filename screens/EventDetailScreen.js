@@ -27,8 +27,7 @@ export default function EventDetailScreen({ route, navigation }) {
     if (isFavorite) {
       await removeFavorite(event.id);
     } else {
-      const name = event.name?.fi || "No title";
-      await addFavorite(event.id, name);
+      await addFavorite(event);
     }
     setIsFavorite((prev) => !prev);
   };

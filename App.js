@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Provider as PaperProvider } from "react-native-paper";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Provider as PaperProvider } from "react-native-paper";
 
 import EventListScreen from "./screens/EventListScreen";
 import FavoritesScreen from "./screens/FavoritesScreen";
@@ -22,6 +22,15 @@ function EventsStack() {
   );
 }
 
+function FavoritesStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="FavoritesList" component={FavoritesScreen} />
+      <Stack.Screen name="EventDetail" component={EventDetailScreen} />
+    </Stack.Navigator>
+  );
+}
+
 export default function App() {
   useEffect(() => {
     initializeDB();
@@ -32,22 +41,18 @@ export default function App() {
       <NavigationContainer>
         <Tab.Navigator screenOptions={{ headerShown: false }}>
           <Tab.Screen
-            name="Events"
+            name="EventsTab"
             component={EventsStack}
             options={{
               tabBarLabel: "Tapahtumat",
               tabBarIcon: ({ color, size }) => (
-                <MaterialCommunityIcons
-                  name="calendar"
-                  color={color}
-                  size={size}
-                />
+                <MaterialCommunityIcons name="calendar" color={color} size={size} />
               ),
             }}
           />
           <Tab.Screen
-            name="Favorites"
-            component={FavoritesScreen}
+            name="FavoritesTab"
+            component={FavoritesStack}
             options={{
               tabBarLabel: "Suosikit",
               tabBarIcon: ({ color, size }) => (

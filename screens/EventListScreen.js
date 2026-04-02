@@ -130,5 +130,10 @@ export default function EventListScreen({ navigation }) {
 const styles = StyleSheet.create({
   searchbar: { margin: 8 },
   loadingContainer: { padding: 16 },
-  emptyContainer: { flex: 1, alignItems: "center", padding: 32 },
+  emptyContainer: {
+    flex: 1,
+    alignItems: "center",
+    padding: 32,
+    justifyContent: "center",
+  },
 });
