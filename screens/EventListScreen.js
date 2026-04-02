@@ -1,36 +1,20 @@
-import { View, FlatList, StyleSheet } from "react-native";
-import { useEffect, useState } from "react";
-import { fetchEventsPage } from "../services/api"; // uusi funktio, hakee yhden sivun
+import { View, StyleSheet } from "react-native";
+import { useEffect, useState, useCallback } from "react";
+import { fetchEventsPage } from "../services/api";
 import { addFavorite, getFavorites } from "../services/database";
-import { Card, Button, Text, Appbar, Paragraph } from "react-native-paper";
+import { Text, Appbar, ProgressBar } from "react-native-paper";
+import { FlashList } from "@shopify/flash-list";
+import EventCard from "../components/EventCard";
 
 export default function EventListScreen({ navigation }) {
   const [events, setEvents] = useState([]);
   const [favorites, setFavorites] = useState([]);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     loadFavorites();
-    loadNextPage();
+    loadAllEvents();
   }, []);
-
-  const loadNextPage = async () => {
-    if (loading || page > totalPages) return;
-
-    setLoading(true);
-    try {
-      const { data, meta } = await fetchEventsPage(page);
-      setEvents((prev) => [...prev, ...data]);
-      setTotalPages(meta.total_pages);
-      setPage((prev) => prev + 1);
-    } catch (error) {
-      console.error("Error loading events:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const loadFavorites = async () => {
     const favs = await getFavorites();
@@ -43,21 +27,59 @@ export default function EventListScreen({ navigation }) {
     loadFavorites();
   };
 
-  const formatDate = (start, end) => {
-    if (!start) return "No date";
-    const startDate = new Date(start);
-    let dateStr = startDate.toLocaleString();
-    if (end) {
-      const endDate = new Date(end);
-      dateStr += " - " + endDate.toLocaleTimeString();
+  // Lataa kaikki sivut kunnes data on tyhjä
+  const loadAllEvents = async () => {
+    setLoading(true);
+    setEvents([]);
+
+    const seenNames = new Set();
+    const now = new Date();
+    let page = 1;
+
+    try {
+      while (true) {
+        const { data } = await fetchEventsPage(page);
+        if (!data || data.length === 0) break; // ei enää sivuja
+
+        // Suodatetaan vain nykyiset ja tulevat tapahtumat start_time:n perusteella
+        const upcoming = data.filter((event) => {
+          if (!event.start_time) return false; // hylätään ilman start_time
+          const start = new Date(event.start_time);
+          if (isNaN(start.getTime())) return false; // hylätään invalid date
+          return start >= now; // vain nykyiset ja tulevat
+        });
+
+        // Poistetaan duplikaatit nimen mukaan
+        const unique = upcoming.filter((event) => {
+          const name = event.name?.fi || "";
+          if (seenNames.has(name)) return false;
+          seenNames.add(name);
+          return true;
+        });
+
+        // Päivitetään lista
+        setEvents((prev) => {
+          const combined = [...prev, ...unique];
+          return combined.sort(
+            (a, b) => new Date(a.start_time) - new Date(b.start_time)
+          );
+        });
+
+        page++;
+        await new Promise((r) => setTimeout(r, 50)); // smooth UI päivitys
+      }
+    } catch (error) {
+      console.error("Error loading events:", error);
+    } finally {
+      setLoading(false);
     }
-    return dateStr;
   };
 
-  const stripHtml = (html) => {
-    if (!html) return "";
-    return html.replace(/<[^>]*>?/gm, "");
-  };
+  // Memoitu renderItem FlashListille
+  const renderItem = useCallback(
+    ({ item }) => <EventCard item={item} onFavorite={handleAddFavorite} />,
+    []
+  );
 
   return (
     <View style={{ flex: 1 }}>
@@ -69,43 +91,22 @@ export default function EventListScreen({ navigation }) {
         />
       </Appbar.Header>
 
-      <FlatList
-        contentContainerStyle={{ padding: 10 }}
+      {loading && (
+        <View style={{ padding: 16 }}>
+          <Text>Ladataan tapahtumia...</Text>
+          <ProgressBar indeterminate />
+        </View>
+      )}
+
+      <FlashList
         data={events}
+        renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <Card style={styles.card}>
-            <Card.Title title={item.name.fi || "No title"} />
-            <Card.Content>
-              {item.description?.fi ? (
-                <Paragraph numberOfLines={2}>
-                  {stripHtml(item.description.fi)}
-                </Paragraph>
-              ) : (
-                <Paragraph>No description</Paragraph>
-              )}
-              <Text style={styles.text}>
-                🕒 {formatDate(item.start_time, item.end_time)}
-              </Text>
-              <Text style={styles.text}>
-                👤 {item.provider?.fi || "No provider"}
-              </Text>
-            </Card.Content>
-            <Card.Actions>
-              <Button mode="contained" onPress={() => handleAddFavorite(item)}>
-                Favorite
-              </Button>
-            </Card.Actions>
-          </Card>
-        )}
-        onEndReached={loadNextPage}
-        onEndReachedThreshold={0.5}
+        estimatedItemSize={160}
+        contentContainerStyle={{ padding: 10 }}
       />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  card: { marginBottom: 10 },
-  text: { marginTop: 4, fontSize: 14, color: "#555" },
-});
+const styles = StyleSheet.create({});
