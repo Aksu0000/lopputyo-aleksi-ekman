@@ -15,14 +15,28 @@ export default function EventCard({
     fetchLocationName(item.location).then(setLocationName);
   }, [item.location]);
 
-  const stripHtml = (html) => (html ? html.replace(/<[^>]*>?/gm, "") : "");
+  const stripHtml = (html) => {
+    if (!html) return "";
+    return html.replace(/<[^>]*>?/gm, "");
+  };
 
   const formatDate = (start, end) => {
     if (!start) return "Ei päivämäärää";
     const startDate = new Date(start);
-    let str = startDate.toLocaleString("fi-FI");
-    if (end) str += " – " + new Date(end).toLocaleTimeString("fi-FI");
-    return str;
+    const date = startDate.toLocaleDateString("fi-FI");
+    const startTime = startDate.toLocaleTimeString("fi-FI", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    if (!end) return `${date} klo ${startTime}`;
+
+    const endTime = new Date(end).toLocaleTimeString("fi-FI", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    return `${date} klo ${startTime} – ${endTime}`;
   };
 
   return (
@@ -32,7 +46,9 @@ export default function EventCard({
         <Paragraph numberOfLines={2}>
           {stripHtml(item.description?.fi) || "Ei kuvausta"}
         </Paragraph>
-        <Text style={styles.text}>🕒 {formatDate(item.start_time, item.end_time)}</Text>
+        <Text style={styles.text}>
+          🕒 {formatDate(item.start_time, item.end_time)}
+        </Text>
         <Text style={styles.text}>📍 {locationName}</Text>
       </Card.Content>
       <Card.Actions>

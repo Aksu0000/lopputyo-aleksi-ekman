@@ -16,15 +16,17 @@ export default function EventListScreen({ navigation }) {
   }, []);
 
   const handleAddFavorite = async (item) => {
-    const name = item.name?.fi || "No title";
-    await addFavorite(item.id, name);
+    await addFavorite(item);
   };
 
   const handleOpenDetail = (item) => {
     navigation.navigate("EventDetail", { event: item });
   };
 
-  const stripHtml = (html) => html.replace(/<[^>]*>?/gm, "");
+  const stripHtml = (html) => {
+    if (!html) return "";
+    return html.replace(/<[^>]*>?/gm, "");
+  };
 
   const filteredEvents = searchQuery.trim()
     ? events.filter((event) => {
@@ -87,7 +89,7 @@ export default function EventListScreen({ navigation }) {
         onPress={handleOpenDetail}
       />
     ),
-    [events],
+    [],
   );
 
   return (

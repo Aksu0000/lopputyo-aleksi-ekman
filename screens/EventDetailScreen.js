@@ -16,7 +16,7 @@ export default function EventDetailScreen({ route, navigation }) {
   useEffect(() => {
     fetchLocationName(event.location).then(setLocationName);
     checkIfFavorite();
-  }, []);
+  }, [event]);
 
   const checkIfFavorite = async () => {
     const favs = await getFavorites();
@@ -40,12 +40,20 @@ export default function EventDetailScreen({ route, navigation }) {
   const formatDate = (start, end) => {
     if (!start) return "Ei päivämäärää";
     const startDate = new Date(start);
-    let str = startDate.toLocaleString("fi-FI");
-    if (end) {
-      const endDate = new Date(end);
-      str += " – " + endDate.toLocaleTimeString("fi-FI");
-    }
-    return str;
+    const date = startDate.toLocaleDateString("fi-FI");
+    const startTime = startDate.toLocaleTimeString("fi-FI", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    if (!end) return `${date} klo ${startTime}`;
+
+    const endTime = new Date(end).toLocaleTimeString("fi-FI", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    return `${date} klo ${startTime} – ${endTime}`;
   };
 
   const eventUrl =

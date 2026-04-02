@@ -40,7 +40,10 @@ export default function FavoritesScreen({ navigation }) {
     [navigation],
   );
 
-  const stripHtml = (html) => html.replace(/<[^>]*>?/gm, "");
+  const stripHtml = (html) => {
+    if (!html) return "";
+    return html.replace(/<[^>]*>?/gm, "");
+  };
 
   const filteredFavorites = searchQuery.trim()
     ? favorites.filter((event) => {
@@ -76,20 +79,18 @@ export default function FavoritesScreen({ navigation }) {
         style={styles.searchbar}
       />
 
-      {filteredFavorites.length === 0 && (
-        <View style={styles.emptyContainer}>
-          <Text>Ei tapahtumia hakusanalla "{searchQuery}"</Text>
-        </View>
-      )}
-
       {favorites.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text>Ei suosikkeja vielä.</Text>
-        </View>
+  <View style={styles.emptyContainer}>
+    <Text>Ei suosikkeja vielä.</Text>
+  </View>
+) : filteredFavorites.length === 0 ? (
+  <View style={styles.emptyContainer}>
+    <Text>Ei tapahtumia hakusanalla "{searchQuery}"</Text>
+  </View>
       ) : (
         <FlatList
           data={favorites}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.id.toString()}
           renderItem={renderItem}
           contentContainerStyle={{ padding: 10 }}
         />

@@ -16,8 +16,10 @@ export const initializeDB = async () => {
 };
 
 export const addFavorite = async (event) => {
+  const id = event.id;
   const name = event.name?.fi || "No title";
-  const description = event.description?.fi || event.short_description?.fi || "";
+  const description =
+    event.description?.fi || event.short_description?.fi || "";
   const start_time = event.start_time || "";
   const end_time = event.end_time || "";
   const location_url =
@@ -29,12 +31,19 @@ export const addFavorite = async (event) => {
     `INSERT OR REPLACE INTO favorites
       (id, name, description, start_time, end_time, location_url)
       VALUES (?, ?, ?, ?, ?, ?);`,
-    id, name, description, start_time, end_time, location_url
+    id,
+    name,
+    description,
+    start_time,
+    end_time,
+    location_url,
   );
 };
 
 export const getFavorites = async () => {
-  return await db.getAllAsync("SELECT * FROM favorites ORDER BY start_time ASC");
+  return await db.getAllAsync(
+    "SELECT * FROM favorites ORDER BY start_time ASC",
+  );
 };
 
 export const removeFavorite = async (id) => {
@@ -43,7 +52,8 @@ export const removeFavorite = async (id) => {
 
 export const isFavorite = async (id) => {
   const result = await db.getFirstAsync(
-    "SELECT id FROM favorites WHERE id = ?", id
+    "SELECT id FROM favorites WHERE id = ?",
+    id,
   );
   return result !== null;
 };
