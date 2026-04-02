@@ -65,7 +65,7 @@ export default function EventListScreen({ navigation }) {
         setEvents((prev) => {
           const combined = [...prev, ...unique];
           return combined.sort(
-            (a, b) => new Date(a.start_time) - new Date(b.start_time)
+            (a, b) => new Date(a.start_time) - new Date(b.start_time),
           );
         });
 
@@ -87,7 +87,7 @@ export default function EventListScreen({ navigation }) {
         onPress={handleOpenDetail}
       />
     ),
-    [events]
+    [events],
   );
 
   return (

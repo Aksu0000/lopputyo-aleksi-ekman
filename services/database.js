@@ -15,7 +15,7 @@ export const addFavorite = async (id, name) => {
   await db.runAsync(
     "INSERT INTO favorites (id, name) VALUES (?, ?);",
     id,
-    name
+    name,
   );
 };
 

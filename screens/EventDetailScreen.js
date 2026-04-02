@@ -2,7 +2,11 @@ import { View, ScrollView, StyleSheet, Linking } from "react-native";
 import { Appbar, Text, Divider, Button } from "react-native-paper";
 import { useEffect, useState } from "react";
 import { fetchLocationName } from "../services/locationCache";
-import { addFavorite, removeFavorite, getFavorites } from "../services/database";
+import {
+  addFavorite,
+  removeFavorite,
+  getFavorites,
+} from "../services/database";
 
 export default function EventDetailScreen({ route, navigation }) {
   const { event } = route.params;
@@ -46,9 +50,7 @@ export default function EventDetailScreen({ route, navigation }) {
   };
 
   const eventUrl =
-    event.info_url?.fi ||
-    event.info_url?.en ||
-    event.external_links?.[0]?.link;
+    event.info_url?.fi || event.info_url?.en || event.external_links?.[0]?.link;
 
   return (
     <View style={{ flex: 1 }}>
@@ -68,15 +70,21 @@ export default function EventDetailScreen({ route, navigation }) {
 
         <Divider style={styles.divider} />
 
-        <Text variant="labelLarge" style={styles.label}>🕒 Aika</Text>
+        <Text variant="labelLarge" style={styles.label}>
+          🕒 Aika
+        </Text>
         <Text style={styles.value}>
           {formatDate(event.start_time, event.end_time)}
         </Text>
 
-        <Text variant="labelLarge" style={styles.label}>📍 Sijainti</Text>
+        <Text variant="labelLarge" style={styles.label}>
+          📍 Sijainti
+        </Text>
         <Text style={styles.value}>{locationName}</Text>
 
-        <Text variant="labelLarge" style={styles.label}>📝 Kuvaus</Text>
+        <Text variant="labelLarge" style={styles.label}>
+          📝 Kuvaus
+        </Text>
         <Text style={styles.value}>
           {stripHtml(event.description?.fi) ||
             stripHtml(event.short_description?.fi) ||

@@ -37,7 +37,11 @@ export default function App() {
             options={{
               tabBarLabel: "Tapahtumat",
               tabBarIcon: ({ color, size }) => (
-                <MaterialCommunityIcons name="calendar" color={color} size={size} />
+                <MaterialCommunityIcons
+                  name="calendar"
+                  color={color}
+                  size={size}
+                />
               ),
             }}
           />

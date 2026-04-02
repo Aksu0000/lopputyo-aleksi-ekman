@@ -1,6 +1,6 @@
 import { View, FlatList, StyleSheet } from "react-native";
-import { useEffect, useState } from 'react';
-import { getFavorites, removeFavorite } from '../services/database';
+import { useEffect, useState } from "react";
+import { getFavorites, removeFavorite } from "../services/database";
 import { Card, Button, Text, Appbar } from "react-native-paper";
 
 export default function FavoritesScreen({ navigation }) {
