@@ -2,32 +2,39 @@ import { View, StyleSheet } from "react-native";
 import { useEffect, useState, useCallback } from "react";
 import { fetchEventsPage } from "../services/api";
 import { addFavorite, getFavorites } from "../services/database";
-import { Text, Appbar, ProgressBar } from "react-native-paper";
+import { Text, Appbar, ProgressBar, Searchbar } from "react-native-paper";
 import { FlashList } from "@shopify/flash-list";
 import EventCard from "../components/EventCard";
 
 export default function EventListScreen({ navigation }) {
   const [events, setEvents] = useState([]);
-  const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    loadFavorites();
     loadAllEvents();
   }, []);
 
-  const loadFavorites = async () => {
-    const favs = await getFavorites();
-    setFavorites(favs);
-  };
-
   const handleAddFavorite = async (item) => {
-    const name = item.name.fi || "No title";
+    const name = item.name?.fi || "No title";
     await addFavorite(item.id, name);
-    loadFavorites();
   };
 
-  // Lataa kaikki sivut kunnes data on tyhjä
+  const handleOpenDetail = (item) => {
+    navigation.navigate("EventDetail", { event: item });
+  };
+
+  const stripHtml = (html) => html.replace(/<[^>]*>?/gm, "");
+
+  const filteredEvents = searchQuery.trim()
+    ? events.filter((event) => {
+        const query = searchQuery.toLowerCase();
+        const name = (event.name?.fi || "").toLowerCase();
+        const desc = stripHtml(event.description?.fi || "").toLowerCase();
+        return name.includes(query) || desc.includes(query);
+      })
+    : events;
+
   const loadAllEvents = async () => {
     setLoading(true);
     setEvents([]);
@@ -39,17 +46,15 @@ export default function EventListScreen({ navigation }) {
     try {
       while (true) {
         const { data } = await fetchEventsPage(page);
-        if (!data || data.length === 0) break; // ei enää sivuja
+        if (!data || data.length === 0) break;
 
-        // Suodatetaan vain nykyiset ja tulevat tapahtumat start_time:n perusteella
         const upcoming = data.filter((event) => {
-          if (!event.start_time) return false; // hylätään ilman start_time
+          if (!event.start_time) return false;
           const start = new Date(event.start_time);
-          if (isNaN(start.getTime())) return false; // hylätään invalid date
-          return start >= now; // vain nykyiset ja tulevat
+          if (isNaN(start.getTime())) return false;
+          return start >= now;
         });
 
-        // Poistetaan duplikaatit nimen mukaan
         const unique = upcoming.filter((event) => {
           const name = event.name?.fi || "";
           if (seenNames.has(name)) return false;
@@ -57,7 +62,6 @@ export default function EventListScreen({ navigation }) {
           return true;
         });
 
-        // Päivitetään lista
         setEvents((prev) => {
           const combined = [...prev, ...unique];
           return combined.sort(
@@ -66,7 +70,7 @@ export default function EventListScreen({ navigation }) {
         });
 
         page++;
-        await new Promise((r) => setTimeout(r, 50)); // smooth UI päivitys
+        await new Promise((r) => setTimeout(r, 50));
       }
     } catch (error) {
       console.error("Error loading events:", error);
@@ -75,31 +79,45 @@ export default function EventListScreen({ navigation }) {
     }
   };
 
-  // Memoitu renderItem FlashListille
   const renderItem = useCallback(
-    ({ item }) => <EventCard item={item} onFavorite={handleAddFavorite} />,
-    []
+    ({ item }) => (
+      <EventCard
+        item={item}
+        onFavorite={handleAddFavorite}
+        onPress={handleOpenDetail}
+      />
+    ),
+    [events]
   );
 
   return (
     <View style={{ flex: 1 }}>
       <Appbar.Header>
-        <Appbar.Content title="Events" />
-        <Appbar.Action
-          icon="star"
-          onPress={() => navigation.navigate("Favorites")}
-        />
+        <Appbar.Content title="Tapahtumat" />
       </Appbar.Header>
 
+      <Searchbar
+        placeholder="Hae tapahtumia..."
+        onChangeText={setSearchQuery}
+        value={searchQuery}
+        style={styles.searchbar}
+      />
+
       {loading && (
-        <View style={{ padding: 16 }}>
+        <View style={styles.loadingContainer}>
           <Text>Ladataan tapahtumia...</Text>
           <ProgressBar indeterminate />
         </View>
       )}
 
+      {!loading && filteredEvents.length === 0 && (
+        <View style={styles.emptyContainer}>
+          <Text>Ei tapahtumia hakusanalla "{searchQuery}"</Text>
+        </View>
+      )}
+
       <FlashList
-        data={events}
+        data={filteredEvents}
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
         estimatedItemSize={160}
@@ -109,4 +127,8 @@ export default function EventListScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  searchbar: { margin: 8 },
+  loadingContainer: { padding: 16 },
+  emptyContainer: { flex: 1, alignItems: "center", padding: 32 },
+});

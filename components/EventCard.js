@@ -3,11 +3,10 @@ import { Card, Paragraph, Text, Button } from "react-native-paper";
 import { StyleSheet } from "react-native";
 import { fetchLocationName } from "../services/locationCache";
 
-export default function EventCard({ item, onFavorite }) {
-  const [locationName, setLocationName] = useState("Loading...");
+export default function EventCard({ item, onFavorite, onPress }) {
+  const [locationName, setLocationName] = useState("Ladataan...");
 
   useEffect(() => {
-    // Hae locationName cachea käyttäen, jos location löytyy
     fetchLocationName(item.location).then(setLocationName);
   }, [item.location]);
 
@@ -17,31 +16,35 @@ export default function EventCard({ item, onFavorite }) {
   };
 
   const formatDate = (start, end) => {
-    if (!start) return "No date";
+    if (!start) return "Ei päivämäärää";
     const startDate = new Date(start);
-    let dateStr = startDate.toLocaleString();
+    let dateStr = startDate.toLocaleString("fi-FI");
     if (end) {
       const endDate = new Date(end);
-      dateStr += " - " + endDate.toLocaleTimeString();
+      dateStr += " – " + endDate.toLocaleTimeString("fi-FI");
     }
     return dateStr;
   };
 
   return (
-    <Card style={styles.card}>
+    <Card style={styles.card} onPress={() => onPress(item)}>
       <Card.Title title={item.name?.fi || "No title"} />
       <Card.Content>
         {item.description?.fi ? (
-          <Paragraph numberOfLines={2}>{stripHtml(item.description.fi)}</Paragraph>
+          <Paragraph numberOfLines={2}>
+            {stripHtml(item.description.fi)}
+          </Paragraph>
         ) : (
-          <Paragraph>No description</Paragraph>
+          <Paragraph>Ei kuvausta</Paragraph>
         )}
-        <Text style={styles.text}>🕒 {formatDate(item.start_time, item.end_time)}</Text>
+        <Text style={styles.text}>
+          🕒 {formatDate(item.start_time, item.end_time)}
+        </Text>
         <Text style={styles.text}>📍 {locationName}</Text>
       </Card.Content>
       <Card.Actions>
         <Button mode="contained" onPress={() => onFavorite(item)}>
-          Favorite
+          Suosikki
         </Button>
       </Card.Actions>
     </Card>

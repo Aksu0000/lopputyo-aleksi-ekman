@@ -1,6 +1,5 @@
 import * as SQLite from "expo-sqlite";
 
-// Luodaan "synkroninen" tietokanta
 const db = SQLite.openDatabaseSync("eventsdb");
 
 export const initializeDB = async () => {

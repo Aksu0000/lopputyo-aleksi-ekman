@@ -3,7 +3,6 @@ const locationCache = {};
 export const fetchLocationName = async (location) => {
   if (!location) return "No location";
 
-  // location voi olla joko object tai string (URL)
   const url = location.url || (typeof location === "string" ? location : null);
   if (!url) return "No location";
 
