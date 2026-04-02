@@ -2,34 +2,33 @@ import { View, ScrollView, StyleSheet, Linking } from "react-native";
 import { Appbar, Text, Divider, Button } from "react-native-paper";
 import { useEffect, useState } from "react";
 import { fetchLocationName } from "../services/locationCache";
-import {
-  addFavorite,
-  removeFavorite,
-  getFavorites,
-} from "../services/database";
+import { useDatabase } from "../services/database";
 
 export default function EventDetailScreen({ route, navigation }) {
   const { event } = route.params;
   const [locationName, setLocationName] = useState("Ladataan...");
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [isFav, setIsFav] = useState(false);
+
+  const { addFavorite, removeFavorite, isFavorite } = useDatabase();
 
   useEffect(() => {
     fetchLocationName(event.location).then(setLocationName);
-    checkIfFavorite();
+
+    const checkFav = async () => {
+      const fav = await isFavorite(event.id);
+      setIsFav(fav);
+    };
+    checkFav();
   }, [event]);
 
-  const checkIfFavorite = async () => {
-    const favs = await getFavorites();
-    setIsFavorite(favs.some((f) => f.id === event.id));
-  };
-
   const toggleFavorite = async () => {
-    if (isFavorite) {
+    if (isFav) {
       await removeFavorite(event.id);
+      setIsFav(false);
     } else {
       await addFavorite(event);
+      setIsFav(true);
     }
-    setIsFavorite((prev) => !prev);
   };
 
   const stripHtml = (html) => {
@@ -65,7 +64,7 @@ export default function EventDetailScreen({ route, navigation }) {
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="Tapahtuma" />
         <Appbar.Action
-          icon={isFavorite ? "star" : "star-outline"}
+          icon={isFav ? "star" : "star-outline"}
           onPress={toggleFavorite}
         />
       </Appbar.Header>

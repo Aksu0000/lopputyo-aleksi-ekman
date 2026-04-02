@@ -1,7 +1,7 @@
 import { View, StyleSheet } from "react-native";
 import { useEffect, useState, useCallback } from "react";
 import { fetchEventsPage } from "../services/api";
-import { addFavorite, getFavorites } from "../services/database";
+import { useDatabase } from "../services/database";
 import { Text, Appbar, ProgressBar, Searchbar } from "react-native-paper";
 import { FlashList } from "@shopify/flash-list";
 import EventCard from "../components/EventCard";
@@ -11,22 +11,26 @@ export default function EventListScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    loadAllEvents();
-  }, []);
+  const { addFavorite, removeFavorite, isFavorite } = useDatabase();
 
-  const handleAddFavorite = async (item) => {
-    await addFavorite(item);
+  const handleFavorite = {
+    toggle: async (item) => {
+      const fav = await isFavorite(item.id);
+      if (fav) {
+        await removeFavorite(item.id);
+      } else {
+        await addFavorite(item);
+      }
+    },
+    check: isFavorite,
   };
 
-  const handleOpenDetail = (item) => {
-    navigation.navigate("EventDetail", { event: item });
-  };
+  const handleOpenDetail = useCallback(
+    (item) => navigation.navigate("EventDetail", { event: item }),
+    [navigation],
+  );
 
-  const stripHtml = (html) => {
-    if (!html) return "";
-    return html.replace(/<[^>]*>?/gm, "");
-  };
+  const stripHtml = (html) => (html ? html.replace(/<[^>]*>?/gm, "") : "");
 
   const filteredEvents = searchQuery.trim()
     ? events.filter((event) => {
@@ -40,7 +44,6 @@ export default function EventListScreen({ navigation }) {
   const loadAllEvents = async () => {
     setLoading(true);
     setEvents([]);
-
     const seenNames = new Set();
     const now = new Date();
     let page = 1;
@@ -53,7 +56,6 @@ export default function EventListScreen({ navigation }) {
         const upcoming = data.filter((event) => {
           if (!event.start_time) return false;
           const start = new Date(event.start_time);
-          if (isNaN(start.getTime())) return false;
           return start >= now;
         });
 
@@ -64,12 +66,11 @@ export default function EventListScreen({ navigation }) {
           return true;
         });
 
-        setEvents((prev) => {
-          const combined = [...prev, ...unique];
-          return combined.sort(
+        setEvents((prev) =>
+          [...prev, ...unique].sort(
             (a, b) => new Date(a.start_time) - new Date(b.start_time),
-          );
-        });
+          ),
+        );
 
         page++;
         await new Promise((r) => setTimeout(r, 50));
@@ -81,11 +82,15 @@ export default function EventListScreen({ navigation }) {
     }
   };
 
+  useEffect(() => {
+    loadAllEvents();
+  }, []);
+
   const renderItem = useCallback(
     ({ item }) => (
       <EventCard
         item={item}
-        onFavorite={handleAddFavorite}
+        onFavorite={handleFavorite}
         onPress={handleOpenDetail}
       />
     ),
@@ -121,7 +126,7 @@ export default function EventListScreen({ navigation }) {
       <FlashList
         data={filteredEvents}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => String(item.id)}
         estimatedItemSize={160}
         contentContainerStyle={{ padding: 10 }}
       />
