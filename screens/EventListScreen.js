@@ -1,7 +1,8 @@
 import { View, StyleSheet } from "react-native";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useDatabase } from "../services/database";
-import { Text, Appbar, ProgressBar, Searchbar } from "react-native-paper";
+import { Text, Appbar, ProgressBar, Searchbar, FAB } from "react-native-paper";
 import { FlashList } from "@shopify/flash-list";
 import EventCard from "../components/EventCard";
 import { stripHtml } from "../utils/text";
@@ -11,6 +12,8 @@ export default function EventListScreen({ navigation }) {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const listRef = useRef(null);
 
   const { addFavorite, removeFavorite, isFavorite } = useDatabase();
 
@@ -51,6 +54,22 @@ export default function EventListScreen({ navigation }) {
     return unsubscribe;
   }, []);
 
+  const scrollToTop = () => {
+    listRef.current?.scrollToOffset({
+      offset: 0,
+      animated: true,
+    });
+  };
+
+  const scrollToBottom = () => {
+    if (!filteredEvents?.length) return;
+
+    listRef.current?.scrollToOffset({
+      offset: filteredEvents.length * 250,
+      animated: true,
+    });
+  };
+
   const renderItem = useCallback(
     ({ item }) => (
       <EventCard
@@ -63,8 +82,8 @@ export default function EventListScreen({ navigation }) {
   );
 
   return (
-    <View style={{ flex: 1 }}>
-      <Appbar.Header>
+    <SafeAreaView style={{ flex: 1 }}>
+      <Appbar.Header statusBarHeight={0}>
         <Appbar.Content title="Tapahtumat" />
       </Appbar.Header>
 
@@ -89,13 +108,18 @@ export default function EventListScreen({ navigation }) {
       )}
 
       <FlashList
+        ref={listRef}
         data={filteredEvents}
         renderItem={renderItem}
         keyExtractor={(item) => String(item.id)}
-        estimatedItemSize={160}
+        estimatedItemSize={250}
         contentContainerStyle={{ padding: 10 }}
       />
-    </View>
+      <View style={styles.fabBar}>
+        <FAB small icon="arrow-up" onPress={scrollToTop} />
+        <FAB small icon="arrow-down" onPress={scrollToBottom} />
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -107,5 +131,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 32,
     justifyContent: "center",
+  },
+  fabBar: {
+    position: "absolute",
+    bottom: 5,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 16,
+  },
+  fabButton: {
+    marginVertical: 6,
   },
 });
