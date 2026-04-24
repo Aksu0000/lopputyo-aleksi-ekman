@@ -42,7 +42,14 @@ export default function FavoritesScreen({ navigation }) {
         const query = searchQuery.toLowerCase();
         const name = (event.name || "").toLowerCase();
         const desc = stripHtml(event.description || "").toLowerCase();
-        return name.includes(query) || desc.includes(query);
+        const location = (event.location_name || "").toLowerCase();
+        const url = (event.info_url?.fi || "").toLowerCase();
+        return (
+        name.includes(query) ||
+        desc.includes(query) ||
+        location.includes(query) ||
+        url.includes(query)
+      );
       })
     : favorites;
 
