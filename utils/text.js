@@ -1,4 +1,8 @@
+import he from "he";
+
 export const stripHtml = (html) => {
   if (!html) return "";
-  return html.replace(/<[^>]*>?/gm, "");
+
+  const withoutTags = html.replace(/<[^>]*>?/gm, "");
+  return he.decode(withoutTags);
 };
