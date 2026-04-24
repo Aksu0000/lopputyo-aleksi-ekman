@@ -3,13 +3,14 @@ import { Appbar, Text, Divider, Button } from "react-native-paper";
 import { useEffect, useState } from "react";
 import { fetchLocationName } from "../services/locationCache";
 import { useDatabase } from "../services/database";
+import { stripHtml } from "../utils/text";
 
 export default function EventDetailScreen({ route, navigation }) {
   const { event } = route.params;
   const [locationName, setLocationName] = useState("Ladataan...");
   const [isFav, setIsFav] = useState(false);
 
-  const { addFavorite, removeFavorite, isFavorite } = useDatabase();
+  const { addFavorite, removeFavorite, isFavorite, version } = useDatabase();
 
   useEffect(() => {
     fetchLocationName(event.location).then(setLocationName);
@@ -19,7 +20,7 @@ export default function EventDetailScreen({ route, navigation }) {
       setIsFav(fav);
     };
     checkFav();
-  }, [event]);
+  }, [event, version]);
 
   const toggleFavorite = async () => {
     if (isFav) {
@@ -29,11 +30,6 @@ export default function EventDetailScreen({ route, navigation }) {
       await addFavorite(event);
       setIsFav(true);
     }
-  };
-
-  const stripHtml = (html) => {
-    if (!html) return "";
-    return html.replace(/<[^>]*>?/gm, "");
   };
 
   const formatDate = (start, end) => {
