@@ -1,18 +1,18 @@
 import { View, StyleSheet } from "react-native";
 import { useEffect, useState, useCallback } from "react";
-import { fetchEventsPage } from "../services/api";
 import { useDatabase } from "../services/database";
 import { Text, Appbar, ProgressBar, Searchbar } from "react-native-paper";
 import { FlashList } from "@shopify/flash-list";
 import EventCard from "../components/EventCard";
 import { stripHtml } from "../utils/text";
+import { subscribeEvents, startEventsStream } from "../services/eventsCache";
 
 export default function EventListScreen({ navigation }) {
   const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { addFavorite, removeFavorite, isFavorite, version } = useDatabase();
+  const { addFavorite, removeFavorite, isFavorite } = useDatabase();
 
   const handleFavorite = {
     toggle: async (item) => {
@@ -40,52 +40,16 @@ export default function EventListScreen({ navigation }) {
       })
     : events;
 
-  const loadAllEvents = async () => {
-    setLoading(true);
-    setEvents([]);
-
-    const seenNames = new Set();
-    const now = new Date();
-    let page = 1;
-
-    try {
-      while (true) {
-        const { data } = await fetchEventsPage(page);
-        if (!data || data.length === 0) break;
-
-        const upcoming = data.filter((event) => {
-          if (!event.start_time) return false;
-          const start = new Date(event.start_time);
-
-          return start >= now;
-        });
-
-        const unique = upcoming.filter((event) => {
-          const name = event.name?.fi || "";
-          if (seenNames.has(name)) return false;
-          seenNames.add(name);
-          return true;
-        });
-
-        setEvents((prev) =>
-          [...prev, ...unique].sort(
-            (a, b) => new Date(a.start_time) - new Date(b.start_time),
-          ),
-        );
-
-        page++;
-        await new Promise((r) => setTimeout(r, 50));
-      }
-    } catch (error) {
-      console.error("Error loading events:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    loadAllEvents();
-  }, [version]);
+    startEventsStream();
+
+    const unsubscribe = subscribeEvents((data) => {
+      setEvents(data);
+      setLoading(false);
+    });
+
+    return unsubscribe;
+  }, []);
 
   const renderItem = useCallback(
     ({ item }) => (
