@@ -10,7 +10,6 @@ const mergeById = (oldItems, newItems) => {
   for (const item of oldItems) {
     if (item?.id) map.set(item.id, item);
   }
-
   for (const item of newItems) {
     if (item?.id) map.set(item.id, item);
   }
@@ -24,9 +23,7 @@ const notify = () => {
 
 export const subscribeEvents = (callback) => {
   listeners.add(callback);
-
   callback(eventsCache);
-
   return () => listeners.delete(callback);
 };
 
@@ -48,15 +45,12 @@ export const startEventsStream = async () => {
         });
 
         eventsCache = mergeById(eventsCache, upcoming);
-
         eventsCache = [...eventsCache].sort(
           (a, b) => new Date(a.start_time) - new Date(b.start_time),
         );
 
         notify();
-
         page++;
-
         await new Promise((r) => setTimeout(r, 200));
       }
     } catch (err) {
