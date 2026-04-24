@@ -57,7 +57,7 @@ export default function EventDetailScreen({ route, navigation }) {
   return (
     <View style={{ flex: 1 }}>
       <Appbar.Header>
-        <Appbar.BackAction onPress={() => navigation.goBack()} />
+        <Appbar.BackAction color="black" onPress={() => navigation.goBack()} />
         <Appbar.Content title="Tapahtuma" />
         <Appbar.Action
           icon={isFav ? "star" : "star-outline"}
