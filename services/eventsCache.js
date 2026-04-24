@@ -1,42 +1,39 @@
 import { fetchEventsPage } from "./api";
 
-/**
- * 🧠 STREAMING CACHE
- * - data ei odota valmistumista
- * - UI saa päivityksiä reaaliajassa
- */
-
 let eventsCache = [];
 let loadingPromise = null;
 let listeners = new Set();
 
-/**
- * 🔔 notify UI:lle
- */
+const mergeById = (oldItems, newItems) => {
+  const map = new Map();
+
+  for (const item of oldItems) {
+    if (item?.id) map.set(item.id, item);
+  }
+
+  for (const item of newItems) {
+    if (item?.id) map.set(item.id, item);
+  }
+
+  return Array.from(map.values());
+};
+
 const notify = () => {
   listeners.forEach((fn) => fn(eventsCache));
 };
 
-/**
- * 📡 subscribe UI:lle
- */
 export const subscribeEvents = (callback) => {
   listeners.add(callback);
 
-  // heti initial data
   callback(eventsCache);
 
   return () => listeners.delete(callback);
 };
 
-/**
- * 🚀 pääloaderi (streaming)
- */
 export const startEventsStream = async () => {
   if (loadingPromise) return loadingPromise;
 
   loadingPromise = (async () => {
-    const seenNames = new Set();
     const now = new Date();
     let page = 1;
 
@@ -50,27 +47,20 @@ export const startEventsStream = async () => {
           return new Date(event.start_time) >= now;
         });
 
-        const unique = upcoming.filter((event) => {
-          const name = event.name?.fi || "";
-          if (seenNames.has(name)) return false;
-          seenNames.add(name);
-          return true;
-        });
+        eventsCache = mergeById(eventsCache, upcoming);
 
-        // 👉 LISÄTÄÄN CACHEEN INCREMENTALLY
-        eventsCache = [...eventsCache, ...unique];
-
-        eventsCache.sort(
+        eventsCache = [...eventsCache].sort(
           (a, b) => new Date(a.start_time) - new Date(b.start_time),
         );
 
-        notify(); // 🔥 UI päivittyy heti
+        notify();
 
         page++;
 
-        // pieni throttlaus ettei API kuole
         await new Promise((r) => setTimeout(r, 200));
       }
+    } catch (err) {
+      console.error("eventsCache error:", err);
     } finally {
       loadingPromise = null;
     }
@@ -79,9 +69,6 @@ export const startEventsStream = async () => {
   return loadingPromise;
 };
 
-/**
- * 🧹 reset (tarvittaessa)
- */
 export const clearEventsCache = () => {
   eventsCache = [];
   notify();
