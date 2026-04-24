@@ -4,19 +4,19 @@ import { useDatabase } from "../services/database";
 import { Appbar, Text, Searchbar } from "react-native-paper";
 import { useIsFocused } from "@react-navigation/native";
 import EventCard from "../components/EventCard";
+import { stripHtml } from "../utils/text";
 
 export default function FavoritesScreen({ navigation }) {
   const [favorites, setFavorites] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const isFocused = useIsFocused();
-  const { getFavorites, removeFavorite, isFavorite } = useDatabase();
+  const { getFavorites, removeFavorite, isFavorite, version } = useDatabase();
 
   const handleFavorite = {
     toggle: async (item) => {
       const fav = await isFavorite(item.id);
       if (fav) {
         await removeFavorite(item.id);
-      } else {
       }
       loadFavorites();
     },
@@ -30,17 +30,12 @@ export default function FavoritesScreen({ navigation }) {
 
   useEffect(() => {
     if (isFocused) loadFavorites();
-  }, [isFocused]);
+  }, [isFocused, version]);
 
   const handleOpenDetail = useCallback(
     (item) => navigation.navigate("EventDetail", { event: item }),
     [navigation],
   );
-
-  const stripHtml = (html) => {
-    if (!html) return "";
-    return html.replace(/<[^>]*>?/gm, "");
-  };
 
   const filteredFavorites = searchQuery.trim()
     ? favorites.filter((event) => {
