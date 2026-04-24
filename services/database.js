@@ -1,8 +1,12 @@
 import { useSQLiteContext } from "expo-sqlite";
 import { useCallback } from "react";
+import { useState } from "react";
 
 export const useDatabase = () => {
   const db = useSQLiteContext();
+  const [version, setVersion] = useState(0);
+
+  const triggerUpdate = () => setVersion((v) => v + 1);
 
   const addFavorite = useCallback(
     async (event) => {
@@ -29,6 +33,7 @@ export const useDatabase = () => {
           end_time,
           location_url,
         );
+        triggerUpdate();
       } catch (error) {
         console.error("Error adding favorite:", error);
       }
@@ -40,6 +45,7 @@ export const useDatabase = () => {
     async (id) => {
       try {
         await db.runAsync("DELETE FROM favorites WHERE id=?", String(id));
+        triggerUpdate();
       } catch (error) {
         console.error("Error removing favorite:", error);
       }
@@ -75,5 +81,5 @@ export const useDatabase = () => {
     [db],
   );
 
-  return { addFavorite, removeFavorite, getFavorites, isFavorite };
+  return { addFavorite, removeFavorite, getFavorites, isFavorite, version, };
 };
