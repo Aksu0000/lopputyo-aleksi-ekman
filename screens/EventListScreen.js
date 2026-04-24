@@ -1,6 +1,5 @@
 import { View, StyleSheet } from "react-native";
 import { useEffect, useState, useCallback, useRef } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useDatabase } from "../services/database";
 import { Text, Appbar, ProgressBar, Searchbar, FAB } from "react-native-paper";
 import { FlashList } from "@shopify/flash-list";
@@ -82,8 +81,8 @@ export default function EventListScreen({ navigation }) {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <Appbar.Header statusBarHeight={0}>
+    <View style={{ flex: 1 }}>
+      <Appbar.Header>
         <Appbar.Content title="Tapahtumat" />
       </Appbar.Header>
 
@@ -115,11 +114,12 @@ export default function EventListScreen({ navigation }) {
         estimatedItemSize={250}
         contentContainerStyle={{ padding: 10 }}
       />
+
       <View style={styles.fabBar}>
-        <FAB small icon="arrow-up" onPress={scrollToTop} />
-        <FAB small icon="arrow-down" onPress={scrollToBottom} />
+        <FAB icon="arrow-up" small onPress={scrollToTop} />
+        <FAB icon="arrow-down" small onPress={scrollToBottom} />
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -129,7 +129,6 @@ const styles = StyleSheet.create({
   emptyContainer: {
     flex: 1,
     alignItems: "center",
-    padding: 32,
     justifyContent: "center",
   },
   fabBar: {
@@ -141,8 +140,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     gap: 16,
-  },
-  fabButton: {
-    marginVertical: 6,
   },
 });
