@@ -5,13 +5,14 @@ import { useDatabase } from "../services/database";
 import { Text, Appbar, ProgressBar, Searchbar } from "react-native-paper";
 import { FlashList } from "@shopify/flash-list";
 import EventCard from "../components/EventCard";
+import { stripHtml } from "../utils/text";
 
 export default function EventListScreen({ navigation }) {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { addFavorite, removeFavorite, isFavorite } = useDatabase();
+  const { addFavorite, removeFavorite, isFavorite, version } = useDatabase();
 
   const handleFavorite = {
     toggle: async (item) => {
@@ -29,11 +30,6 @@ export default function EventListScreen({ navigation }) {
     (item) => navigation.navigate("EventDetail", { event: item }),
     [navigation],
   );
-
-  const stripHtml = (html) => {
-    if (!html) return "";
-    return html.replace(/<[^>]*>?/gm, "");
-  };
 
   const filteredEvents = searchQuery.trim()
     ? events.filter((event) => {
@@ -89,7 +85,7 @@ export default function EventListScreen({ navigation }) {
 
   useEffect(() => {
     loadAllEvents();
-  }, []);
+  }, [version]);
 
   const renderItem = useCallback(
     ({ item }) => (
@@ -99,7 +95,7 @@ export default function EventListScreen({ navigation }) {
         onPress={handleOpenDetail}
       />
     ),
-    [],
+    [handleFavorite, handleOpenDetail],
   );
 
   return (
