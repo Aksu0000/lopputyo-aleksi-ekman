@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Card, Paragraph, Text, Button } from "react-native-paper";
 import { StyleSheet } from "react-native";
 import { fetchLocationName } from "../services/locationCache";
+import { stripHtml } from "../utils/text";
 
 export default function EventCard({
   item,
@@ -10,33 +11,36 @@ export default function EventCard({
   favoriteLabel = "Suosikki",
 }) {
   const [locationName, setLocationName] = useState("Ladataan...");
-  const [isFav, setIsFav] = useState(false);
 
   useEffect(() => {
     fetchLocationName(item.location).then(setLocationName);
   }, [item.location]);
 
+  const [isFav, setIsFav] = useState(false);
+
   useEffect(() => {
-    const checkFav = async () => {
+    let mounted = true;
+
+    const load = async () => {
       if (onFavorite?.check) {
         const fav = await onFavorite.check(item.id);
-        setIsFav(fav);
+        if (mounted) setIsFav(fav);
       }
     };
-    checkFav();
+
+    load();
+
+    return () => (mounted = false);
   }, [item.id, onFavorite]);
 
   const toggleFav = async () => {
     if (!onFavorite) return;
     await onFavorite.toggle(item);
-    setIsFav((prev) => !prev);
+
+    const fav = await onFavorite.check(item.id);
+    setIsFav(fav);
   };
 
-  const stripHtml = (html) => {
-    if (!html) return "";
-    return html.replace(/<[^>]*>?/gm, "");
-  };
-  
   const formatDate = (start, end) => {
     if (!start) return "Ei päivämäärää";
     const s = new Date(start);
